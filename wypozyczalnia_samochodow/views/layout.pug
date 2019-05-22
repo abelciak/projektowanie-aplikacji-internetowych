@@ -28,6 +28,11 @@ html
               a.active(href=url, title=wartosc)=wartosc
             else
               a(href=url, title=wartosc)=wartosc
+        li
+          if autoryzacja == true
+            a(href="/wyloguj", title=Wyloguj) Wyloguj
+          else
+            a(href="/zaloguj", title=Wyloguj) Zaloguj
     #main
       #maincontent
         center
