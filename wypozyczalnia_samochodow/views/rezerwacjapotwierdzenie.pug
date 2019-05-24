@@ -1,0 +1,11 @@
+extends layout
+block link
+    -var wybor='Rezerwacja';
+block content
+    .alert.alert-success(role='alert')
+        h4.alert-heading Gratulujemy #{uzytkownik.name}!
+        p
+            | Twoja rezerwacja została pomyślnie wysłana. Numer Twojej rezerwacji to #{numerRezerwacja}.
+        hr
+        p.mb-0
+            | Pamiętaj, Twoją rezerwację musi jeszcze potwierdzić obsługa wypożyczalni. Status rezerwacji znajdziesz w zakładce "Moje rezerwacje"

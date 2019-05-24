@@ -28,7 +28,7 @@ block content
                      th(scope='col') Samochód
                      th(scope='col') Opis
                      th(scope='col') Cena (1 dzień)
-                     th(scope='col') Całkowity koszt (#{iloscDni} dni)
+                     th(scope='col')
 
              tbody
              each item in pokazdostepne
@@ -36,4 +36,16 @@ block content
                      th #{item.markaAuto} #{item.modelAuto}
                      th #{item.opisAuto}
                      th #{item.cenaAuto} zł
-                     th #{item.calkowityKoszt} zł
+                     th
+                      if autoryzacja == true
+                       form(action="rezerwuj-samochod" name='rezerwuj-samochod' id="formularz-"+item.idAuto
+                           method="POST")
+                        input(type="hidden" name="samochod" value=item.idAuto)
+                        input(type="hidden" name="od" value=dataStart)
+                        input(type="hidden" name="do" value=dataKoniec)
+                        input(type="hidden" name="ile" value=iloscDni)
+                        button(type="button" class="btn btn-outline-primary")
+                         a(href="javascript:$('#formularz-"+item.idAuto+"').submit();") Rezerwuj (#{item.calkowityKoszt} zł)
+                      else
+                       b(class="text-danger") Zaloguj się aby zarezerwować
+                      - n++;

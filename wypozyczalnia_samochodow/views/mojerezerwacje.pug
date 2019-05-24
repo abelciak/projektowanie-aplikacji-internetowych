@@ -1,0 +1,8 @@
+extends layout
+block link
+    -var wybor='Moje rezerwacje';
+block content
+    if rezerwacje ==0
+     div(class="alert alert-info" role="alert") Nie masz żadnych rezerwacji
+    else
+     | Są

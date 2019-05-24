@@ -28,9 +28,12 @@ html
               a.active(href=url, title=wartosc)=wartosc
             else
               a(href=url, title=wartosc)=wartosc
+        if autoryzacja == true
+         li
+          a(href="/moje-rezerwacje", title=Wyloguj) Moje rezerwacje
         li
           if autoryzacja == true
-            a(href="/wyloguj", title=Wyloguj) Wyloguj
+            a(href="/wyloguj", title=Wyloguj) Wyloguj (#{uzytkownik.name})
           else
             a(href="/zaloguj", title=Wyloguj) Zaloguj
     #main
