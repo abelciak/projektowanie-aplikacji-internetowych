@@ -2,7 +2,10 @@ doctype html
 html
   block link
     -var wybor='';
-  -var menu={'Strona główna': '/', 'Flota': '/samochody', 'Rezerwacja': '/rezerwacja'};
+  if autoryzacja===true
+    -var menu={'Strona główna': '/', 'Flota': '/samochody', 'Rezerwacja': '/rezerwacja','Moje rezerwacje':'/moje-rezerwacje','Panel Administratora':'admin'};
+  else
+   -var menu={'Strona główna': '/', 'Flota': '/samochody', 'Rezerwacja': '/rezerwacja'};
   - var maxKolumna=8;
   - var maxWiersz=5;
 
@@ -28,9 +31,6 @@ html
               a.active(href=url, title=wartosc)=wartosc
             else
               a(href=url, title=wartosc)=wartosc
-        if autoryzacja == true
-         li
-          a(href="/moje-rezerwacje", title=Wyloguj) Moje rezerwacje
         li
           if autoryzacja == true
             a(href="/wyloguj", title=Wyloguj) Wyloguj (#{uzytkownik.name})

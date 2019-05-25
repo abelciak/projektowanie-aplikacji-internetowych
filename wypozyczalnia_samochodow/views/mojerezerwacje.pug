@@ -2,7 +2,32 @@ extends layout
 block link
     -var wybor='Moje rezerwacje';
 block content
-    if rezerwacje ==0
-     div(class="alert alert-info" role="alert") Nie masz żadnych rezerwacji
+    if autoryzacja===true
+        if rezerwacje ==0
+         div(class="alert alert-info" role="alert") Nie masz żadnych rezerwacji
+        else
+            table(class='table table-striped table-hover')
+                thead(class='thead-dark')
+                    tr
+                        th(scope='col') Numer rezerwacji
+                        th(scope='col') Samochód
+                        th(scope='col') Początek - Koniec
+                        th(scope='col') Koszt całkowity
+                        th(scope='col') Status rezerwacji
+                tbody
+                each item in daneRezerwacja
+                    tr
+                        th #{item.idRezerwacja}
+                        th #{item.markaAuto} #{item.modelAuto}
+                        th #{item.start} - #{item.koniec} (#{item.iloscRezerwacja} dni)
+                        th #{item.calosc} zł
+                        th
+                            if item.statusRezerwacja == 0
+                                b(class='text-warning') Oczekująca na potwierdzenie
+                            else if item.statusRezerwacja == 1
+                                b(class='text-success') Potwierdzona
+                            br
+                            a(class="btn btn-danger" href="rezerwacja/usun/"+item.idRezerwacja role="button") Usuń rezerwację
+
     else
-     | Są
+     b(class="text-danger") Zaloguj się aby sprawdzić swoje rezerwacje

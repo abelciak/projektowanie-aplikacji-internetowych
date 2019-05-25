@@ -117,14 +117,64 @@ router.post('/rezerwuj-samochod', function(req, res, next) {
 // Rezerwacje użytkownika
 router.get('/moje-rezerwacje', function(req, res, next) {
     db.query("SELECT idUzytkownik from uzytkownicy WHERE idDostawca="+req.user.user, (err,rows) => {
-        db.query("SELECT * FROM rezerwacje NATURAL JOIN auta WHERE idUzytkownik="+rows[0].idUzytkownik, (err,rows2) => {
+        db.query("SELECT *, DATE_FORMAT(startRezerwacja,'%d.%m.%y') as start," +
+            " DATE_FORMAT(koniecRezerwacja,'%d.%m.%y') as koniec, datediff(koniecRezerwacja,startRezerwacja)+1 as" +
+            " iloscRezerwacja, cenaAuto*(datediff(koniecRezerwacja,startRezerwacja)+1) as calosc" +
+            " FROM rezerwacje NATURAL JOIN auta" +
+            " WHERE idUzytkownik="+rows[0].idUzytkownik+" ORDER BY idRezerwacja DESC", (err,rows2) => {
 
-            res.render('mojerezerwacje', { title: 'Moje rezerwacje',rezerwacje:rows2.length, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+            res.render('mojerezerwacje', { daneRezerwacja:rows2, title: 'Moje rezerwacje',rezerwacje:rows2.length, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
         });
     });
-
-
-
 });
+
+// usuwanie rezerwacja (uzytkownik + admin)
+router.get('/rezerwacja/usun/:id', function(req, res, next) {
+    db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca="+req.user.user, (err,rows) => {
+        db.query("SELECT idRezerwacja, idUzytkownik from rezerwacje WHERE idRezerwacja="+req.params.id, (err,rows2) => {
+            console.log("Id biezacego uzytkownika "+rows[0].idUzytkownik);
+            console.log("Admin "+rows[0].adminUzytkownik);
+            console.log("Id rezerwujacego"+rows2[0].idUzytkownik);
+            if ((rows[0].idUzytkownik==rows2[0].idUzytkownik) || (rows[0].adminUzytkownik==1))
+            {
+                var statusUsuniecie=1;
+                db.query("DELETE FROM rezerwacje WHERE idRezerwacja='"+req.params.id+"'");
+            }
+            else
+            {
+                var statusUsuniecie=0;
+            }
+            res.render('rezerwacjausun', { title: 'Moje rezerwacje',statusUsuniecie:statusUsuniecie, id:req.params.id, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+
+        });
+    });
+});
+
+// Panel administratora - strona główna
+router.get('/admin', function(req, res, next) {
+    db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca=" + req.user.user, (err, rows) => {
+        res.render('adminpanel', { title: 'Panel administratora', czyAdmin:rows[0].adminUzytkownik, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+    });
+});
+
+// Panel administratora - nadanie uprawnień dla zalogowanego użytkownika
+router.get('/admin/nadaj-uprawnienia', function(req, res, next) {
+    db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca=" + req.user.user, (err, rows) => {
+
+        db.query("UPDATE uzytkownicy SET adminUzytkownik=1 WHERE idUzytkownik='"+rows[0].idUzytkownik+"'");
+        res.redirect('/admin');
+    });
+});
+
+// Panel administratora - odebranie uprawnień dla zalogowanego użytkownika
+router.get('/admin/odbierz-uprawnienia', function(req, res, next) {
+    db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca=" + req.user.user, (err, rows) => {
+
+        db.query("UPDATE uzytkownicy SET adminUzytkownik=0 WHERE idUzytkownik='"+rows[0].idUzytkownik+"'");
+        res.redirect('/admin');
+    });
+});
+
+
 
 module.exports = router;

@@ -1,0 +1,19 @@
+extends layout
+block link
+    -var wybor='Panel Administratora';
+block content
+    if autoryzacja===true
+        if czyAdmin==0
+            .alert.alert-danger(role='alert')
+                | Nie masz uprawnień administratora.
+                br
+                a(href="/admin/nadaj-uprawnienia") Kliknij tutaj
+                |  aby nadać sobie uprawnienia.
+        else if czyAdmin==1
+            .btn-group(role='group', aria-label='Basic example')
+                a.btn.btn-outline-primary(href='admin/flota', role='button') Zarządzaj flotą
+                a.btn.btn-outline-primary(href='admin/rezerwacje', role='button') Zarządzaj rezerwacjami
+                a.btn.btn-outline-primary(href='admin/uzytkownicy', role='button') Zarządzaj użytkownikami
+                a.btn.btn-outline-danger(href='admin/odbierz-uprawnienia', role='button') Odbierz uprawnienia administratora
+            br
+            block admin

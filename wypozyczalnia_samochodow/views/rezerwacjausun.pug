@@ -1,0 +1,11 @@
+extends layout
+block link
+    -var wybor='';
+block content
+    if autoryzacja===true
+        if statusUsuniecie==1
+            .alert.alert-success(role='alert')
+                | Rezerwacja numer #{id} została pomyślnie usunięta.
+        else
+             .alert.alert-danger(role='alert')
+                 | Rezerwacja nie została usunięta. Brak uprawnień.
