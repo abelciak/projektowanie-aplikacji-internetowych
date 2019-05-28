@@ -1,0 +1,32 @@
+extends admin
+block admin
+        br
+        table(class='table table-striped table-hover')
+            thead(class='thead-dark')
+                tr
+                    th(scope='col') Numer rezerwacji
+                    th(scope='col') Samochód
+                    th(scope='col') Początek - Koniec
+                    th(scope='col') Koszt całkowity
+                    th(scope='col') Użytkownik
+                    th(scope='col') Status rezerwacji
+            tbody
+            each item in daneRezerwacja
+                tr
+                    th #{item.idRezerwacja}
+                    th #{item.markaAuto} #{item.modelAuto}
+                    th #{item.start} - #{item.koniec} (#{item.iloscRezerwacja} dni)
+                    th #{item.calosc} zł
+                    th #{item.nazwaUzytkownik}
+                    th
+                        if item.statusRezerwacja == 0
+                            b(class='text-warning') Niepotwierdzona
+                            br
+                            a(class="btn btn-success btn-sm" href="rezerwacja/akceptuj/" + item.idRezerwacja role="button") Akceptuj rezerwację
+                        else if item.statusRezerwacja == 1
+                            b(class='text-success') Potwierdzona
+                            br
+                            a(class="btn btn-warning btn-sm" href="rezerwacja/odrzuc/" + item.idRezerwacja role="button") Odrzuć rezerwację
+                        br
+                        a(class="btn btn-danger btn-sm" style="margin-top: 6px;" href="rezerwacja/usun/" + item
+                            .idRezerwacja role="button") Usuń rezerwację
