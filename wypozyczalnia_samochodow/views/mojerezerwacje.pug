@@ -10,6 +10,7 @@ block content
                 thead(class='thead-dark')
                     tr
                         th(scope='col') Numer rezerwacji
+                        th(scope='col') Zdjęcie
                         th(scope='col') Samochód
                         th(scope='col') Początek - Koniec
                         th(scope='col') Koszt całkowity
@@ -18,6 +19,10 @@ block content
                 each item in daneRezerwacja
                     tr
                         th #{item.idRezerwacja}
+                        th
+                            ul.list-inline.gallery
+                                li
+                                    img.thumbnail.zoom(src=katalog + item.zdjecieAuto style="max-width:100px;max-height:100px;")
                         th #{item.markaAuto} #{item.modelAuto}
                         th #{item.start} - #{item.koniec} (#{item.iloscRezerwacja} dni)
                         th #{item.calosc} zł

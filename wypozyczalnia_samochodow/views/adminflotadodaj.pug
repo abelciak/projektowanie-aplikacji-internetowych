@@ -1,0 +1,40 @@
+extends admin
+block admin
+    if czyDodano==1
+        br
+        .alert.alert-success(role='alert')
+            | Samochód został pomyślnie dodany do floty.
+    else if czyDodano==0
+        table(class='table table-striped table-hover')
+            form(action='/admin/samochod/dodaj', method='post', enctype='multipart/form-data')
+                table
+                    tr
+                        td Marka
+                        td
+                            input(type="text" name="marka" maxlength="30" required)
+                    tr
+                        td Model
+                        td
+                            input(type="text" name="model" maxlength="30" required)
+                    tr
+                        td Opis
+                        td
+                            input(type="text" name="opis" maxlength="1000" required)
+                    tr
+                        td Cena (1 dzień)
+                        td
+                            input(type='number', min='1', max='1000', step='0.01', name='cena')
+                    tr
+                        td Status
+                        td
+                            select(name='status')
+                                option(value='1') Aktywny
+                                option(value='0') Nieaktywny
+                    tr
+                        td Zdjęcie
+                        td
+                            input(type='file', accept='image/*', name='zdjecie' required)
+                    tr
+                        td
+                        td
+                            button.btn.btn-primary(type='submit') Dodaj samochód

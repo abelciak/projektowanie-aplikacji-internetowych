@@ -1,0 +1,47 @@
+extends admin
+block admin
+    if czyDodano==1
+        br
+        .alert.alert-success(role='alert')
+            | Samochód został pomyślnie zaktualizowany.
+    else if czyDodano==0
+        table(class='table table-striped table-hover')
+            form(action='/admin/samochod/edytuj', method='post', enctype='multipart/form-data')
+                table
+                    tr
+                        td Markaa
+                        td
+                            input(type="text" name="marka" value=daneAuto.markaAuto maxlength="30" required)
+                    tr
+                        td Model
+                        td
+                            input(type="text" name="model" value=daneAuto.modelAuto maxlength="30" required)
+                            input(type="hidden" name="id" value=idSamochod)
+                    tr
+                        td Opis
+                        td
+                            input(type="text" name="opis" value=daneAuto.opisAuto maxlength="1000" required)
+                    tr
+                        td Cena (1 dzień)
+                        td
+                            input(type='number' value=daneAuto.cenaAuto min='1' max='1000' step='0.01' name='cena')
+                    tr
+                        td Status
+                        td
+                            select(name='status')
+                                option(value='1' selected= daneAuto.statusAuto == 1) Aktywny
+                                option(value='0' selected= daneAuto.statusAuto == 0) Nieaktywny
+                    tr
+                        td Zdjęcie
+                        td
+                            ul.list-inline.gallery
+                                li
+                                    img.thumbnail.zoom(src=katalog + daneAuto.zdjecieAuto style="max-width:100px;max-height:100px;")
+                    tr
+                        td Nowe zdjęcie
+                        td
+                            input(type='file', accept='image/*', name='zdjecie')
+                    tr
+                        td
+                        td
+                            button.btn.btn-primary(type='submit') Edytuj samochód

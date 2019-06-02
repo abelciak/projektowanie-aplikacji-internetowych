@@ -6,6 +6,7 @@ block content
     table(class='table table-striped table-hover')
         thead(class='thead-dark')
             tr
+                th(scope='col') Zdjęcie
                 th(scope='col') Samochód
                 th(scope='col') Opis
                 th(scope='col') Cena (1 dzień)
@@ -13,6 +14,10 @@ block content
         tbody
         each item in pokazsamochody
             tr
+                th
+                    ul.list-inline.gallery
+                        li
+                            img.thumbnail.zoom(src=katalog+item.zdjecieAuto style="max-width:100px;max-height:100px;")
                 th #{item.markaAuto} #{item.modelAuto}
                 th #{item.opisAuto}
                 th #{item.cenaAuto} zł

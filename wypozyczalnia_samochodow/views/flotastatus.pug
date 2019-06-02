@@ -1,0 +1,8 @@
+extends admin
+block admin
+        if statusUsuniecie==1
+            .alert.alert-success(role='alert')
+                | Status samochodu #{id} został pomyślnie zmieniony.
+        else
+            .alert.alert-danger(role='alert')
+                | Wystąpił błąd podczas zmiany statusu samochodu #{id}.

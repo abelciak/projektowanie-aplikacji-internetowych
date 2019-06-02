@@ -2,6 +2,10 @@ var express = require('express');
 var router = express.Router();
 var passport = require('passport');
 var FacebookStrategy = require('passport-facebook').Strategy;
+var multer = require('multer');
+var katalog=__dirname + '\\\..\\public\\uploads';
+var katalogPopr="/uploads/"
+var upload = multer({dest:katalog});
 var mysql = require('mysql');
 
 // Dane do polaczenia z baza danych
@@ -73,7 +77,7 @@ router.get('/', function(req, res, next) {
 router.get('/samochody', function(req, res, next) {
 
     db.query("SELECT * FROM auta ORDER BY markaAuto ASC, modelAuto ASC", function(error, pokazsamochody){
-        res.render('samochodymenu', { pokazsamochody:pokazsamochody, title: 'Samochody',autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+        res.render('samochodymenu', { pokazsamochody:pokazsamochody, katalog:katalogPopr, title: 'Samochody',autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
     });
 });
 
@@ -94,9 +98,12 @@ router.post('/rezerwacja', function(req, res, next) {
     var oneDay = 24*60*60*1000;
     var iloscDni=Math.round(Math.abs((new Date(req.body.start).getTime() - new Date(req.body.koniec).getTime())/(oneDay)))+1;
 
-    db.query("SELECT *, cenaAuto*"+iloscDni+" as calkowityKoszt FROM auta ORDER BY markaAuto ASC, modelAuto ASC", function(error, pokazdostepne){
+    db.query("SELECT *, cenaAuto*"+iloscDni+" as calkowityKoszt FROM auta as a WHERE statusAuto=1 AND a.idAuto NOT IN" +
+        " (SELECT" +
+        " r.idAuto FROM rezerwacje AS r WHERE r.startRezerwacja<='"+req.body.koniec+"' AND " +
+    " r.koniecRezerwacja>='"+req.body.start+"')  ORDER BY markaAuto ASC, modelAuto ASC", function(error, pokazdostepne){
 
-        res.render('rezerwacjamenu', { title: 'Rezerwacja', pokazdostepne:pokazdostepne, dzis: dzis, danePost:1, dataStart:dataStart, dataKoniec:dataKoniec, iloscDni:iloscDni,autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+        res.render('rezerwacjamenu', { title: 'Rezerwacja', katalog:katalogPopr, pokazdostepne:pokazdostepne, dzis: dzis, danePost:1, dataStart:dataStart, dataKoniec:dataKoniec, iloscDni:iloscDni,autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
     });
 });
 
@@ -123,7 +130,7 @@ router.get('/moje-rezerwacje', function(req, res, next) {
             " FROM rezerwacje NATURAL JOIN auta" +
             " WHERE idUzytkownik="+rows[0].idUzytkownik+" ORDER BY idRezerwacja DESC", (err,rows2) => {
 
-            res.render('mojerezerwacje', { daneRezerwacja:rows2, title: 'Moje rezerwacje',rezerwacje:rows2.length, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+            res.render('mojerezerwacje', { daneRezerwacja:rows2, title: 'Moje rezerwacje', katalog:katalogPopr,rezerwacje:rows2.length, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
         });
     });
 });
@@ -241,9 +248,110 @@ router.get('/admin/uzytkownicy', function(req, res, next) {
 router.get('/admin/flota', function(req, res, next) {
     db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca=" + req.user.user, (err, rows) => {
         db.query("SELECT * FROM auta ORDER BY idAuto DESC", (err,rows2) => {
-            res.render('adminflota', { title: 'Panel administratora', daneFlota:rows2, czyAdmin:rows[0].adminUzytkownik, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+            res.render('adminflota', { title: 'Panel administratora', katalog:katalogPopr, daneFlota:rows2, czyAdmin:rows[0].adminUzytkownik, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
         });
     });
 });
 
+// Panel administratora - flota - dodaj samochód
+router.get('/admin/samochod/dodaj', function(req, res, next) {
+    db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca=" + req.user.user, (err, rows) => {
+        res.render('adminflotadodaj', { title: 'Panel administratora', czyDodano:0, czyAdmin:rows[0].adminUzytkownik, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+    });
+});
+
+router.post('/admin/samochod/dodaj', upload.single('zdjecie'), (req, res) => {
+    if(req.file) {
+
+        db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca=" + req.user.user, (err, rows) => {
+            var nowacena=req.body.cena.replace(",",".");
+            //console.log(req.file.filename);
+            //console.log(req.body.marka);
+            //console.log(req.body.model);
+            //console.log(req.body.opis);
+            //console.log(req.body.status);
+            //console.log(nowacena);
+
+            db.query("INSERT into auta(markaAuto,modelAuto,opisAuto,zdjecieAuto,cenaAuto,statusAuto) VALUES('"+req.body.marka+"','"+req.body.model+"','"+req.body.opis+"','"+req.file.filename+"','"+nowacena+"','"+req.body.status+"')");
+
+            res.render('adminflotadodaj', { title: 'Panel administratora', czyAdmin:rows[0].adminUzytkownik, czyDodano:1, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+
+
+        });
+    }
+    else throw 'error';
+});
+
+// Panel administratora - dezaktywuj samochod
+router.get('/admin/samochod/dezaktywuj/:id', function(req, res, next) {
+    db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca="+req.user.user, (err,rows) => {
+        db.query("SELECT * from auta WHERE idAuto="+req.params.id, (err,rows2) => {
+            if (rows[0].adminUzytkownik==1)
+            {
+                var statusUsuniecie=1;
+                db.query("UPDATE auta set statusAuto=0 WHERE idAuto='"+req.params.id+"'");
+            }
+            else
+            {
+                var statusUsuniecie=0;
+            }
+            res.render('flotastatus', { title: 'Panel Administratora',statusUsuniecie:statusUsuniecie, id:req.params.id, autoryzacja: req.isAuthenticated(),uzytkownik: req.user, czyAdmin:rows[0].adminUzytkownik });
+
+        });
+    });
+});
+
+// Panel administratora - aktywuj samochod
+router.get('/admin/samochod/aktywuj/:id', function(req, res, next) {
+    db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca="+req.user.user, (err,rows) => {
+        db.query("SELECT * from auta WHERE idAuto="+req.params.id, (err,rows2) => {
+            if (rows[0].adminUzytkownik==1)
+            {
+                var statusUsuniecie=1;
+                db.query("UPDATE auta set statusAuto=1 WHERE idAuto='"+req.params.id+"'");
+            }
+            else
+            {
+                var statusUsuniecie=0;
+            }
+            res.render('flotastatus', { title: 'Panel Administratora',statusUsuniecie:statusUsuniecie, id:req.params.id, autoryzacja: req.isAuthenticated(),uzytkownik: req.user, czyAdmin:rows[0].adminUzytkownik });
+
+        });
+    });
+});
+
+// Panel administratora - flota - edytuj samochód
+router.get('/admin/samochod/edytuj/:id', function(req, res, next) {
+    db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca=" + req.user.user, (err, rows) => {
+        db.query("SELECT * from auta WHERE idAuto=" + req.params.id, (err, rows2) => {
+             res.render('adminflotaedytuj', { title: 'Panel administratora', idSamochod:req.params.id, katalog:katalogPopr,daneAuto:rows2[0], czyDodano:0, czyAdmin:rows[0].adminUzytkownik, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+        });
+    });
+});
+
+router.post('/admin/samochod/edytuj', upload.single('zdjecie'), (req, res) => {
+    if(req.file) {
+
+        db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca=" + req.user.user, (err, rows) => {
+            var nowacena=req.body.cena.replace(",",".");
+            console.log(nowacena);
+
+            db.query("UPDATE auta SET markaAuto='"+req.body.marka+"',modelAuto='"+req.body.model+"',opisAuto='"+req.body.opis+"',cenaAuto='"+nowacena+"',statusAuto='"+req.body.status+"',zdjecieAuto='"+req.file.filename+"' WHERE idAuto='"+req.body.id+"'");
+            res.render('adminflotaedytuj', { title: 'Panel administratora', czyAdmin:rows[0].adminUzytkownik, czyDodano:1, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+
+        });
+    }
+    else
+    {
+        db.query("SELECT adminUzytkownik,idUzytkownik from uzytkownicy WHERE idDostawca=" + req.user.user, (err, rows) => {
+            var nowacena=req.body.cena.replace(",",".");
+
+            db.query("UPDATE auta SET markaAuto='"+req.body.marka+"',modelAuto='"+req.body.model+"',opisAuto='"+req.body.opis+"',cenaAuto='"+nowacena+"',statusAuto='"+req.body.status+"' WHERE idAuto='"+req.body.id+"'");
+            res.render('adminflotaedytuj', { title: 'Panel administratora', czyAdmin:rows[0].adminUzytkownik, czyDodano:1, autoryzacja: req.isAuthenticated(),uzytkownik: req.user });
+
+        });
+    }
+
+
+});
 module.exports = router;
